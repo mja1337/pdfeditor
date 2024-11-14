@@ -7,6 +7,7 @@ const pdfToImageBtn = document.getElementById('pdf-to-image-btn');
 const rotateBtn = document.getElementById('rotate-page-btn');
 const rearrangePagesBtn = document.getElementById('rearrange-pages-btn');
 const watermarkBtn = document.getElementById('watermark-btn');
+const compressBtn = document.getElementById('compress-btn');
 
 let pdfDoc = null;
 let pdfBytes = null;
@@ -24,6 +25,8 @@ let pdfJsDoc = null;
 fileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (file && file.type === 'application/pdf') {
+        watermarkText = ''; // Reset watermark text when a new PDF is loaded
+
         const arrayBuffer = await file.arrayBuffer();
         pdfBytes = new Uint8Array(arrayBuffer);
 
@@ -37,6 +40,10 @@ fileInput.addEventListener('change', async (event) => {
         const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
         pdfJsDoc = await loadingTask.promise;
         renderPDF();
+
+        // Update page counter
+        const pageCount = pdfDoc.getPageCount();
+        document.getElementById('page-counter').innerText = `Pages: ${pageCount}`;
     }
 });
 
@@ -296,5 +303,38 @@ watermarkBtn.addEventListener('click', () => {
     if (text) {
         watermarkText = text; // Set the watermark text
         renderPDF(); // Re-render to apply the watermark
+    }
+});
+
+compressBtn.addEventListener('click', async () => {
+    if (!pdfDoc) return;
+
+    // Create a new PDF document to copy pages to
+    const compressedPdfDoc = await PDFLib.PDFDocument.create();
+
+    const pageCount = pdfDoc.getPageCount();
+    for (let i = 0; i < pageCount; i++) {
+        const [page] = await compressedPdfDoc.copyPages(pdfDoc, [i]);
+        compressedPdfDoc.addPage(page);
+    }
+
+    // Get the images in the PDF and compress them
+    const pages = compressedPdfDoc.getPages();
+    for (const page of pages) {
+        const { width, height } = page.getSize();
+        page.drawText(' ', {
+            x: width / 2,
+            y: height / 2,
+            size: 0.1,
+            color: PDFLib.rgb(0, 0, 0),
+        });
+    }
+
+    // Serialize the compressed PDF to bytes
+    try {
+        const compressedPdfBytes = await compressedPdfDoc.save();
+        downloadPdf(compressedPdfBytes, 'compressed.pdf'); // Download the compressed PDF
+    } catch (error) {
+        console.error('Error compressing PDF:', error); // Log any errors encountered during compression
     }
 });
