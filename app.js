@@ -129,30 +129,20 @@ saveBtn.addEventListener('click', async () => {
     // Log all rotation values for debugging
     console.log('Rotation values before saving:', rotations);
 
-    // Remove deleted pages and adjust rotations accordingly
-    const pagesToRemove = [...deletedPages].sort((a, b) => b - a); // Sort in descending order
-    for (const index of pagesToRemove) {
-        pdfDoc.removePage(index);
-        delete rotations[index]; // Remove the corresponding rotation entry
-    }
-
-    // Apply rotations to pages
-    const pageCount = pdfDoc.getPageCount();
-    for (let i = 0; i < pageCount; i++) {
-        if (rotations[i] !== undefined) {
-            const page = pdfDoc.getPage(i);
-            page.setRotation(PDFLib.degrees(rotations[i])); // Apply the rotation to the page
-        }
-    }
-
     // Create a new PDF document for saving (with compression)
     const newPdfDoc = await PDFLib.PDFDocument.create();
 
+    const pageCount = pdfDoc.getPageCount();
     for (let i = 0; i < pageCount; i++) {
         if (deletedPages.has(i)) continue; // Skip deleted pages
 
         const [newPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
         newPdfDoc.addPage(newPage); // Add the copied page
+
+        // Apply the rotation if it exists for the page
+        if (rotations[i] !== undefined) {
+            newPage.setRotation(PDFLib.degrees(rotations[i])); // Apply the rotation to the copied page
+        }
 
         // Add the watermark to the new page with consistent properties
         if (watermarkText) {
@@ -174,11 +164,12 @@ saveBtn.addEventListener('click', async () => {
         const compressedPdfBytes = await newPdfDoc.save({
             useObjectStreams: false // This reduces the file size for compression
         });
-        downloadPdf(compressedPdfBytes, 'edited_compressed.pdf'); // Download the compressed PDF
+        downloadPdf(compressedPdfBytes, 'edited.pdf'); // Download the compressed PDF
     } catch (error) {
         console.error('Error saving PDF:', error); // Log any errors encountered during saving
     }
 });
+
 
 // Helper function to download the PDF
 function downloadPdf(modifiedPdfBytes, filename) {
