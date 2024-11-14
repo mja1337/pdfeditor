@@ -9,6 +9,12 @@ const rearrangePagesBtn = document.getElementById('rearrange-pages-btn');
 const watermarkBtn = document.getElementById('watermark-btn');
 const compressBtn = document.getElementById('compress-btn');
 
+const watermarkProperties = {
+    fontSize: 50,
+    color: 'rgba(0.75, 0.75, 0.75, 0.2)',
+    rotationAngleDegrees: 45,
+};
+
 let pdfDoc = null;
 let pdfBytes = null;
 let deletedPages = new Set(); // Track deleted pages
@@ -112,6 +118,7 @@ async function renderPDF() {
     // Show the save button once PDF is rendered
     saveBtn.style.display = 'block';
 }
+
 
 // Mark page as deleted and re-render PDF
 function deletePage(pageIndex) {
@@ -313,20 +320,18 @@ rearrangePagesBtn.addEventListener('click', () => {
 watermarkBtn.addEventListener('click', () => {
     const text = prompt('Enter watermark text:');
     if (text) {
-        watermarkText = text; // Set the watermark text
+        watermarkText = text; // Set the watermark text dynamically
         renderPDF(); // Re-render to apply the watermark
     }
 });
 
 function drawWatermark(context, text, width, height, isCanvas = true) {
-    const watermarkAngleDegrees = 45; // Rotation angle in degrees
-    const watermarkAngleRadians = (Math.PI / 180) * watermarkAngleDegrees; // Convert degrees to radians for canvas
-    const fontSize = 50; // Set font size
+    const watermarkAngleRadians = (Math.PI / 180) * watermarkProperties.rotationAngleDegrees; // Convert degrees to radians for canvas
 
     if (isCanvas) {
         // Handle rendering watermark on HTML canvas
-        context.font = `${fontSize}px Arial`; // Set font size and type
-        context.fillStyle = 'rgba(0.75, 0.75, 0.75, 0.2)'; // Set transparent watermark color
+        context.font = `${watermarkProperties.fontSize}px Arial`; // Set font size and type
+        context.fillStyle = watermarkProperties.color; // Set transparent watermark color
         context.textAlign = 'center'; // Center the text
         context.textBaseline = 'middle'; // Align text to middle baseline
         context.save(); // Save the current context state
@@ -344,10 +349,10 @@ function drawWatermark(context, text, width, height, isCanvas = true) {
         context.drawText(text, {
             x: width / 2,
             y: height / 2,
-            size: fontSize,
+            size: watermarkProperties.fontSize,
             color: PDFLib.rgb(0.75, 0.75, 0.75),
             opacity: 0.2,
-            rotate: PDFLib.degrees(watermarkAngleDegrees), // Use the same degree value for PDF-lib
+            rotate: PDFLib.degrees(watermarkProperties.rotationAngleDegrees), // Use the same degree value for PDF-lib
             anchor: 'middle-center', // Center the watermark
         });
     }
