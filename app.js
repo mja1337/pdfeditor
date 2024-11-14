@@ -31,17 +31,21 @@ function updatePageCounter() {
 fileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (file && file.type === 'application/pdf') {
-        watermarkText = ''; // Reset watermark text when a new PDF is loaded
-        rotations = {}; // Reset rotations when a new PDF is loaded
-        deletedPages.clear(); // Reset deleted pages when a new PDF is loaded
+        // Reset state variables for new file load
+        watermarkText = '';        // Reset watermark text
+        rotations = {};            // Reset rotations
+        deletedPages.clear();      // Reset deleted pages
+        pdfDoc = null;             // Clear the previous PDF document
+        pdfJsDoc = null;           // Clear the PDF.js document
 
+        // Load the new file
         const arrayBuffer = await file.arrayBuffer();
         pdfBytes = new Uint8Array(arrayBuffer);
 
         // Load the PDF using PDF-lib for editing
         pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
 
-        // Initialize page order
+        // Initialize page order for new document
         pageOrder = Array.from({ length: pdfDoc.getPageCount() }, (_, i) => i);
 
         // Load and render the PDF using PDF.js for viewing
@@ -49,10 +53,11 @@ fileInput.addEventListener('change', async (event) => {
         pdfJsDoc = await loadingTask.promise;
         renderPDF();
 
-        // Update page counter
+        // Update page counter for the new document
         updatePageCounter();
     }
 });
+
 
 // Update the renderPDF function to account for the current page order
 async function renderPDF() {
