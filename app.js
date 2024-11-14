@@ -319,29 +319,36 @@ watermarkBtn.addEventListener('click', () => {
 });
 
 function drawWatermark(context, text, width, height, isCanvas = true) {
-    const watermarkAngle = 45; // Rotation angle in degrees, same for both rendering and saving
+    const watermarkAngleDegrees = 45; // Rotation angle in degrees
+    const watermarkAngleRadians = (Math.PI / 180) * watermarkAngleDegrees; // Convert degrees to radians for canvas
+    const fontSize = 50; // Set font size
 
     if (isCanvas) {
         // Handle rendering watermark on HTML canvas
-        context.font = '50px Arial'; // Set font size and type
+        context.font = `${fontSize}px Arial`; // Set font size and type
         context.fillStyle = 'rgba(0.75, 0.75, 0.75, 0.2)'; // Set transparent watermark color
         context.textAlign = 'center'; // Center the text
+        context.textBaseline = 'middle'; // Align text to middle baseline
         context.save(); // Save the current context state
-        context.translate(width / 2, height / 2); // Move the origin to the center
-        context.rotate((Math.PI / 180) * watermarkAngle); // Rotate by converting degrees to radians
-        context.fillText(text, 0, 0); // Draw the watermark
+
+        // Translate to the center of the canvas to rotate around the center
+        context.translate(width / 2, height / 2);
+        context.rotate(watermarkAngleRadians); // Rotate by specified degrees converted to radians
+
+        // Draw the watermark text at the center of the canvas
+        context.fillText(text, 0, 0);
+
         context.restore(); // Restore the context to its original state
     } else {
         // Handle rendering watermark on PDF-lib page
         context.drawText(text, {
             x: width / 2,
             y: height / 2,
-            size: 50,
+            size: fontSize,
             color: PDFLib.rgb(0.75, 0.75, 0.75),
             opacity: 0.2,
-            rotate: PDFLib.degrees(watermarkAngle), // Use the same degree value for PDF-lib
-            anchor: 'center', // Center the watermark
+            rotate: PDFLib.degrees(watermarkAngleDegrees), // Use the same degree value for PDF-lib
+            anchor: 'middle-center', // Center the watermark
         });
     }
 }
-
