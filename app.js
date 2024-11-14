@@ -95,17 +95,8 @@ async function renderPDF() {
 
         // Draw watermark if it exists
         if (watermarkText) {
-            const { width, height } = viewport;
-            context.font = '50px Arial'; // Set font size
-            context.fillStyle = 'rgba(0.75, 0.75, 0.75, 0.2)'; // More transparent watermark color
-            context.textAlign = 'center'; // Center the text
-            context.save(); // Save the current context state
-            context.translate(width / 2, height / 2); // Move the origin to the center
-            context.rotate(Math.PI / 4); // Rotate 45 degrees clockwise (adjust angle to 270 degrees)
-            context.fillText(watermarkText, 0, 0); // Draw the watermark
-            context.restore(); // Restore the context to its original state
+            drawWatermark(context, watermarkText, viewport.width, viewport.height);
         }
-
 
         // Create delete button
         const deleteBtn = document.createElement('button');
@@ -153,16 +144,7 @@ saveBtn.addEventListener('click', async () => {
 
         // Add the watermark to the new page with consistent properties
         if (watermarkText) {
-            const { width, height } = newPage.getSize();
-            newPage.drawText(watermarkText, {
-                x: width / 2,
-                y: height / 2,
-                size: 50,
-                color: PDFLib.rgb(0.75, 0.75, 0.75), // Consistent watermark color
-                opacity: 0.2, // Consistent transparency
-                rotate: PDFLib.degrees(45), // Apply consistent rotation
-                anchor: 'middle-center' // Center the watermark
-            });
+            drawWatermark(newPage, watermarkText, newPage.getWidth(), newPage.getHeight(), false);
         }
     }
 
@@ -176,7 +158,6 @@ saveBtn.addEventListener('click', async () => {
         console.error('Error saving PDF:', error); // Log any errors encountered during saving
     }
 });
-
 
 // Helper function to download the PDF
 function downloadPdf(modifiedPdfBytes, filename) {
@@ -336,3 +317,31 @@ watermarkBtn.addEventListener('click', () => {
         renderPDF(); // Re-render to apply the watermark
     }
 });
+
+function drawWatermark(context, text, width, height, isCanvas = true) {
+    const watermarkAngle = 45; // Rotation angle for watermark, same for both rendering and saving
+    context.font = '50px Arial'; // Set font size and type
+    context.fillStyle = 'rgba(0.75, 0.75, 0.75, 0.2)'; // Set transparent watermark color
+    context.textAlign = 'center'; // Center the text
+    context.save(); // Save the current context state
+
+    // Rotate and translate context
+    if (isCanvas) {
+        context.translate(width / 2, height / 2); // Move the origin to the center
+        context.rotate((Math.PI / 180) * watermarkAngle); // Rotate by specified degrees
+        context.fillText(text, 0, 0); // Draw the watermark
+    } else {
+        // If rendering for PDF-lib, apply rotation using degrees from PDF-lib
+        context.drawText(text, {
+            x: width / 2,
+            y: height / 2,
+            size: 50,
+            color: PDFLib.rgb(0.75, 0.75, 0.75),
+            opacity: 0.2,
+            rotate: PDFLib.degrees(watermarkAngle),
+            anchor: 'middle-center',
+        });
+    }
+
+    context.restore(); // Restore the context to its original state
+}
