@@ -212,41 +212,26 @@ imageToPdfBtn.addEventListener('click', async () => {
     imageFileInput.onchange = async (event) => {
         const files = event.target.files;
         if (files.length) {
-            try {
-                const imagePdfs = await Promise.all(Array.from(files).map(async (file) => {
-                    const imageBytes = await file.arrayBuffer();
-                    const imagePdf = await PDFLib.PDFDocument.create();
-                    const page = imagePdf.addPage([600, 800]); // Add a page with specified size
+            const imagePdfs = await Promise.all(Array.from(files).map(async (file) => {
+                const imageBytes = await file.arrayBuffer();
+                const imagePdf = await PDFLib.PDFDocument.create();
+                const page = imagePdf.addPage([600, 800]); // Add a page with specified size
+                const jpgImage = await imagePdf.embedJpg(imageBytes);
+                const { width, height } = jpgImage.scale(1);
+                page.drawImage(jpgImage, { x: 0, y: 0, width, height });
 
-                    let embeddedImage;
-                    // Check the MIME type and embed the image accordingly
-                    if (file.type === 'image/jpeg') {
-                        embeddedImage = await imagePdf.embedJpg(imageBytes);
-                    } else if (file.type === 'image/png') {
-                        embeddedImage = await imagePdf.embedPng(imageBytes);
-                    } else {
-                        throw new Error('Unsupported image format. Please use JPEG or PNG.');
-                    }
+                return imagePdf.save();
+            }));
 
-                    const { width, height } = embeddedImage.scale(1);
-                    page.drawImage(embeddedImage, { x: 0, y: 0, width, height });
-
-                    return imagePdf.save();
-                }));
-
-                const combinedPdf = await PDFLib.PDFDocument.create();
-                for (const imagePdfBytes of imagePdfs) {
-                    const imagePdf = await PDFLib.PDFDocument.load(imagePdfBytes);
-                    const pages = await combinedPdf.copyPages(imagePdf, imagePdf.getPageIndices());
-                    pages.forEach((page) => combinedPdf.addPage(page));
-                }
-
-                const combinedPdfBytes = await combinedPdf.save();
-                downloadPdf(combinedPdfBytes, 'images_to_pdf.pdf');
-            } catch (error) {
-                console.error('Error processing images:', error);
-                alert('There was an error processing the images. Please ensure they are either JPEG or PNG files.');
+            const combinedPdf = await PDFLib.PDFDocument.create();
+            for (const imagePdfBytes of imagePdfs) {
+                const imagePdf = await PDFLib.PDFDocument.load(imagePdfBytes);
+                const pages = await combinedPdf.copyPages(imagePdf, imagePdf.getPageIndices());
+                pages.forEach((page) => combinedPdf.addPage(page));
             }
+
+            const combinedPdfBytes = await combinedPdf.save();
+            downloadPdf(combinedPdfBytes, 'images_to_pdf.pdf');
         }
     };
 
