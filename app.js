@@ -339,10 +339,9 @@ function drawWatermark(context, text, width, height, isCanvas = true) {
             size: 50,
             color: PDFLib.rgb(0.75, 0.75, 0.75),
             opacity: 0.2,
-            rotate: PDFLib.degrees(watermarkAngle),
-            xSkew: 0,
-            ySkew: 0,
-            anchor: PDFLib.TextAlignment.center,
+            rotate: PDFLib.degrees(watermarkAngle), // Rotate using PDF-lib's `degrees()`
+            anchor: 'center', // Center the watermark
         });
     }
 }
+
