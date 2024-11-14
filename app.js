@@ -270,17 +270,42 @@ pdfToImageBtn.addEventListener('click', async () => {
     }
 });
 
-// Rotate pages functionality
+// Rotate pages functionality (updated to handle multiple pages)
 rotateBtn.addEventListener('click', () => {
-    const pageIndex = parseInt(prompt('Enter page number to rotate (1-' + pdfDoc.getPageCount() + '):')) - 1;
+    const pageInput = prompt('Enter page numbers to rotate (e.g., 1,2,5 or "all" for all pages):').toLowerCase();
     const rotation = parseInt(prompt('Enter rotation angle (0, 90, 180, 270):'));
 
-    if (pageIndex >= 0 && pageIndex < pdfDoc.getPageCount() && [0, 90, 180, 270].includes(rotation)) {
-        rotations[pageIndex] = rotation; // Store the rotation
-        renderPDF(); // Re-render the PDF to apply the rotation
-    } else {
-        alert('Invalid page number or rotation angle.');
+    if (![0, 90, 180, 270].includes(rotation)) {
+        alert('Invalid rotation angle. Please enter 0, 90, 180, or 270.');
+        return;
     }
+
+    let pagesToRotate = [];
+
+    if (pageInput === 'all') {
+        // Rotate all pages
+        pagesToRotate = Array.from({ length: pdfDoc.getPageCount() }, (_, i) => i);
+    } else {
+        // Rotate specified pages
+        pagesToRotate = pageInput.split(',')
+            .map(pageStr => parseInt(pageStr.trim()) - 1)
+            .filter(pageIndex => !isNaN(pageIndex) && pageIndex >= 0 && pageIndex < pdfDoc.getPageCount());
+    }
+
+    if (pagesToRotate.length === 0) {
+        alert('No valid pages selected for rotation.');
+        return;
+    }
+
+    // Store rotation for each specified page and re-render
+    pagesToRotate.forEach(pageIndex => {
+        if (rotations[pageIndex] === undefined) {
+            rotations[pageIndex] = 0; // Default to no rotation if not already set
+        }
+        rotations[pageIndex] = (rotations[pageIndex] + rotation) % 360; // Apply the new rotation
+    });
+
+    renderPDF(); // Re-render the PDF to apply the rotation
 });
 
 // Rearrange pages functionality
