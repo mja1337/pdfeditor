@@ -32,6 +32,8 @@ fileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
     if (file && file.type === 'application/pdf') {
         watermarkText = ''; // Reset watermark text when a new PDF is loaded
+        rotations = {}; // Reset rotations when a new PDF is loaded
+        deletedPages.clear(); // Reset deleted pages when a new PDF is loaded
 
         const arrayBuffer = await file.arrayBuffer();
         pdfBytes = new Uint8Array(arrayBuffer);
