@@ -312,36 +312,3 @@ watermarkBtn.addEventListener('click', () => {
         renderPDF(); // Re-render to apply the watermark
     }
 });
-
-compressBtn.addEventListener('click', async () => {
-    if (!pdfDoc) return;
-
-    // Create a new PDF document to copy pages to
-    const compressedPdfDoc = await PDFLib.PDFDocument.create();
-
-    const pageCount = pdfDoc.getPageCount();
-    for (let i = 0; i < pageCount; i++) {
-        const [page] = await compressedPdfDoc.copyPages(pdfDoc, [i]);
-        compressedPdfDoc.addPage(page);
-    }
-
-    // Get the images in the PDF and compress them
-    const pages = compressedPdfDoc.getPages();
-    for (const page of pages) {
-        const { width, height } = page.getSize();
-        page.drawText(' ', {
-            x: width / 2,
-            y: height / 2,
-            size: 0.1,
-            color: PDFLib.rgb(0, 0, 0),
-        });
-    }
-
-    // Serialize the compressed PDF to bytes
-    try {
-        const compressedPdfBytes = await compressedPdfDoc.save();
-        downloadPdf(compressedPdfBytes, 'compressed.pdf'); // Download the compressed PDF
-    } catch (error) {
-        console.error('Error compressing PDF:', error); // Log any errors encountered during compression
-    }
-});
