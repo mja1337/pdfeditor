@@ -123,10 +123,18 @@ saveBtn.addEventListener('click', async () => {
         delete rotations[index]; // Remove the corresponding rotation entry
     }
 
+    // Apply rotations to pages
+    const pageCount = pdfDoc.getPageCount();
+    for (let i = 0; i < pageCount; i++) {
+        if (rotations[i] !== undefined) {
+            const page = pdfDoc.getPage(i);
+            page.setRotation(PDFLib.degrees(rotations[i])); // Apply the rotation to the page
+        }
+    }
+
     // Create a new PDF document for saving
     const newPdfDoc = await PDFLib.PDFDocument.create();
 
-    const pageCount = pdfDoc.getPageCount();
     for (let i = 0; i < pageCount; i++) {
         if (deletedPages.has(i)) continue; // Skip deleted pages
 
@@ -142,8 +150,8 @@ saveBtn.addEventListener('click', async () => {
                 size: 50,
                 color: PDFLib.rgb(0.75, 0.75, 0.75), // Consistent watermark color
                 opacity: 0.2, // Consistent transparency
-                rotate: PDFLib.degrees(0), // Ensure 270-degree rotation
-                anchor: 'middle-center' // Center the watermark
+                rotate: PDFLib.degrees(0), // Ensure consistent rotation
+                anchor: 'middle-center', // Center the watermark
             });
         }
     }
