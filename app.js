@@ -21,6 +21,12 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 let pdfJsDoc = null;
 
+// Update the page counter
+function updatePageCounter() {
+    const pageCount = pdfDoc.getPageCount() - deletedPages.size;
+    document.getElementById('page-counter').innerText = `Pages: ${pageCount}`;
+}
+
 // Handle PDF file input
 fileInput.addEventListener('change', async (event) => {
     const file = event.target.files[0];
@@ -42,8 +48,7 @@ fileInput.addEventListener('change', async (event) => {
         renderPDF();
 
         // Update page counter
-        const pageCount = pdfDoc.getPageCount();
-        document.getElementById('page-counter').innerText = `Pages: ${pageCount}`;
+        updatePageCounter();
     }
 });
 
@@ -116,7 +121,7 @@ function deletePage(pageIndex) {
     renderPDF(); // Re-render without the deleted page
 }
 
-// Save the modified PDF using PDF-lib
+// Save the modified PDF using PDF-lib with compression
 saveBtn.addEventListener('click', async () => {
     if (!pdfDoc) return;
 
@@ -139,7 +144,7 @@ saveBtn.addEventListener('click', async () => {
         }
     }
 
-    // Create a new PDF document for saving
+    // Create a new PDF document for saving (with compression)
     const newPdfDoc = await PDFLib.PDFDocument.create();
 
     for (let i = 0; i < pageCount; i++) {
@@ -157,16 +162,18 @@ saveBtn.addEventListener('click', async () => {
                 size: 50,
                 color: PDFLib.rgb(0.75, 0.75, 0.75), // Consistent watermark color
                 opacity: 0.2, // Consistent transparency
-                rotate: PDFLib.degrees(0), // Ensure consistent rotation
-                anchor: 'middle-center', // Center the watermark
+                rotate: PDFLib.degrees(45), // Apply consistent rotation
+                anchor: 'middle-center' // Center the watermark
             });
         }
     }
 
-    // Serialize the modified PDF to bytes
+    // Serialize the modified and compressed PDF to bytes
     try {
-        const modifiedPdfBytes = await newPdfDoc.save();
-        downloadPdf(modifiedPdfBytes, 'edited.pdf'); // Download the modified PDF
+        const compressedPdfBytes = await newPdfDoc.save({
+            useObjectStreams: false // This reduces the file size for compression
+        });
+        downloadPdf(compressedPdfBytes, 'edited_compressed.pdf'); // Download the compressed PDF
     } catch (error) {
         console.error('Error saving PDF:', error); // Log any errors encountered during saving
     }
