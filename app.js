@@ -319,7 +319,7 @@ watermarkBtn.addEventListener('click', () => {
 });
 
 function drawWatermark(context, text, width, height, isCanvas = true) {
-    const watermarkAngle = 45; // Rotation angle for watermark, same for both rendering and saving
+    const watermarkAngle = 45; // Rotation angle in degrees, same for both rendering and saving
 
     if (isCanvas) {
         // Handle rendering watermark on HTML canvas
@@ -328,7 +328,7 @@ function drawWatermark(context, text, width, height, isCanvas = true) {
         context.textAlign = 'center'; // Center the text
         context.save(); // Save the current context state
         context.translate(width / 2, height / 2); // Move the origin to the center
-        context.rotate((Math.PI / 180) * watermarkAngle); // Rotate by specified degrees
+        context.rotate((Math.PI / 180) * watermarkAngle); // Rotate by converting degrees to radians
         context.fillText(text, 0, 0); // Draw the watermark
         context.restore(); // Restore the context to its original state
     } else {
@@ -339,7 +339,7 @@ function drawWatermark(context, text, width, height, isCanvas = true) {
             size: 50,
             color: PDFLib.rgb(0.75, 0.75, 0.75),
             opacity: 0.2,
-            rotate: PDFLib.degrees(watermarkAngle), // Rotate using PDF-lib's `degrees()`
+            rotate: PDFLib.degrees(watermarkAngle), // Use the same degree value for PDF-lib
             anchor: 'center', // Center the watermark
         });
     }
