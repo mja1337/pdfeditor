@@ -119,6 +119,7 @@ async function renderPDF() {
 function deletePage(pageIndex) {
     deletedPages.add(pageIndex); // Mark page for deletion
     renderPDF(); // Re-render without the deleted page
+    updatePageCounter(); // Update the page counter after rendering
 }
 
 // Save the modified PDF using PDF-lib with compression
