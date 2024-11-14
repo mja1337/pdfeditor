@@ -320,18 +320,19 @@ watermarkBtn.addEventListener('click', () => {
 
 function drawWatermark(context, text, width, height, isCanvas = true) {
     const watermarkAngle = 45; // Rotation angle for watermark, same for both rendering and saving
-    context.font = '50px Arial'; // Set font size and type
-    context.fillStyle = 'rgba(0.75, 0.75, 0.75, 0.2)'; // Set transparent watermark color
-    context.textAlign = 'center'; // Center the text
-    context.save(); // Save the current context state
 
-    // Rotate and translate context
     if (isCanvas) {
+        // Handle rendering watermark on HTML canvas
+        context.font = '50px Arial'; // Set font size and type
+        context.fillStyle = 'rgba(0.75, 0.75, 0.75, 0.2)'; // Set transparent watermark color
+        context.textAlign = 'center'; // Center the text
+        context.save(); // Save the current context state
         context.translate(width / 2, height / 2); // Move the origin to the center
         context.rotate((Math.PI / 180) * watermarkAngle); // Rotate by specified degrees
         context.fillText(text, 0, 0); // Draw the watermark
+        context.restore(); // Restore the context to its original state
     } else {
-        // If rendering for PDF-lib, apply rotation using degrees from PDF-lib
+        // Handle rendering watermark on PDF-lib page
         context.drawText(text, {
             x: width / 2,
             y: height / 2,
@@ -339,9 +340,9 @@ function drawWatermark(context, text, width, height, isCanvas = true) {
             color: PDFLib.rgb(0.75, 0.75, 0.75),
             opacity: 0.2,
             rotate: PDFLib.degrees(watermarkAngle),
-            anchor: 'middle-center',
+            xSkew: 0,
+            ySkew: 0,
+            anchor: PDFLib.TextAlignment.center,
         });
     }
-
-    context.restore(); // Restore the context to its original state
 }
